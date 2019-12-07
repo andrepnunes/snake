@@ -5,6 +5,11 @@
 #include <stdio.h>
 int main(int argc, char const *argv[])
 {
+	int move; //manual
+	
+
+
+
 	//variables wait for snake game
 	char* gameName;
 	int sizeX;
@@ -30,70 +35,81 @@ int main(int argc, char const *argv[])
 	int myLastPosx;
 	int myLastPosy;
 
+	//ses coordonées : joueur 1
+	int hisPOSx;
+	int hisPOSy;
+	int hisLastPosx;
+	int hisLastPosy;
+
 	int* directionsInterdites = (int*) (malloc(4 * sizeof(int)));
 	directionsInterdites[0] = 0;
 	directionsInterdites[1] = 0;
 	directionsInterdites[2] = 0;
 	directionsInterdites[3] = 0;
 	
-	int* myBody = (int*) (malloc(2* 100 * sizeof(int)));
+	int* myBody = (int*) (malloc(2* 200 * sizeof(int)));
+	int* hisBody = (int*) (malloc(2* 200 * sizeof(int)));
+
 	// int : ma taille
 	int mySize = 1;
+	int hisSize = 1;
 
 	//int : conteur de tours
 	int ctr = 0;
 
 	// boolean : vaut 0 si le jeu doit s'arreter
 	int gameON = 1;
-	//int move; //manual
 	connectToServer("polydev.cia-polytech-sorbonne.fr", 8080, "ovni");
 
 	// seed = 123
-	waitForSnakeGame("RANDOM_PLAYER difficulty=2 timeout=1000 seed=1 start=0", gameName, &sizeX, &sizeY, &nbWalls);
+	waitForSnakeGame("RANDOM_PLAYER difficulty=0 timeout=1000 seed=123 start=0", gameName, &sizeX, &sizeY, &nbWalls);
 	
+	// init pos joueur 0
 	myPOSx = 2;
 	myLastPosx = 2;
-	myPOSy = sizeY/2;
-	myLastPosx = sizeY/2;
-/*
-	for (int i = 0; i < 200; i+=2)
-	{
-		myBody[i] = myPOSx;	
-		myBody[i+1] = myPOSy;	
-	}
-	*/
-	printf("(%d, %d)\n", myPOSx, myPOSy);
+	myPOSy = sizeY / 2;
+	myLastPosy = sizeY / 2;
+	
+	myBody[0] = myPOSx;	
+	myBody[1] = myPOSy;
+
+	// init pos joueur 1
+	hisPOSx = sizeX - 3;
+	hisLastPosx = sizeX - 3;
+	hisPOSy = sizeY / 2;
+	hisLastPosy = sizeY / 2;
+
+	hisBody[0] = hisPOSx;	
+	hisBody[1] = hisPOSy;
+
+	for (int i = 2; i < 400; i++){myBody[i] = -1; hisBody[i] = -1;}
+
+	
+	// creation tableau murs
 	walls = (int*) (realloc(walls, 4 * nbWalls * sizeof(int)));
 
-	myTurn = !getSnakeArena(walls); // = 1 si c'est mon tour, = 0 sinon
-	printf("%d\n", nbWalls);
+	// = 1 si c'est mon tour, = 0 sinon
+	myTurn = !getSnakeArena(walls); 
 
 	myMove = 0;
 	while(gameON){
-		printArena();
+		//printArena();
 		if (myTurn)
 		{
-			ctr ++;
+			printArena(); // so faz print na minha vez
+			
+
 
 			for (int i = 0; i < 4; ++i)
 			{
 				directionsInterdites[i] = 0;
 			}
-/*			
-			for (int i = 0; i < 4*nbWalls; i+=4)
-			{
-				printf("(%d, %d) -> (%d, %d)\n", walls[i], walls[i+1], walls[i+2], walls[i+3]);
-			}
-			*/
+			
+			//wall awarness
+			for (int i = 0; i < 4*nbWalls; i+=2){
 
-			for (int i = 0; i < 4*nbWalls; i+=2)
-			{
-				//printf("%d %d %d %d =%d %d =%d \n" , myPOSx == walls[i], i%4, walls[i] == walls[i+2], myPOSy , walls[i+1], myPOSy , walls[i+3]);
-
-				//printf("%d %d\n", myPOSx, myPOSy);
 				if (myPOSx == walls[i] && walls[i] == walls[i-2] && myPOSy >= walls[i+1] && myPOSy <= walls[i+3])		//meme coord barriere && je suis a GAUCHE de la barriere && barriere verticale && je suis devant la barriere
 				{
-					printf("jfv\n");
 					directionsInterdites[1] = 1;
 				}else if (myPOSx == walls[i] && walls[i] == walls[i+2] && myPOSy >= walls[i+1] && myPOSy <= walls[i+3])		//meme coord barriere && je suis a DROITE de la barriere && barriere verticale && je suis devant la barriere
 				{
@@ -106,22 +122,56 @@ int main(int argc, char const *argv[])
 				{
 					directionsInterdites[0] = 1;
 				}
-
 			}
 
+
+			// SELF - AWARENESS
 			for (int i = 0; i < mySize*2; i+=2)
 			{
 				switch((myBody[i] - myPOSx) * (myBody[i+1] == myPOSy)){
 					case -1:
-						directionsInterdites[1] = 1;
-					case 1:
 						directionsInterdites[3] = 1;
+						break;
+					case 1:
+						directionsInterdites[1] = 1;
+						break;
+					default:
+						break;
 				}
 				switch((myBody[i+1] - myPOSy) * (myBody[i] == myPOSx)){
 					case -1:
 						directionsInterdites[0] = 1;
+						break;
 					case 1:
 						directionsInterdites[2] = 1;
+						break;
+					default:
+						break;
+				}
+			}
+
+			// ENEMY - AWARENESS
+			for (int i = 0; i < hisSize*2; i+=2)
+			{
+				switch((hisBody[i] - myPOSx) * (hisBody[i+1] == myPOSy)){
+					case -1:
+						directionsInterdites[3] = 1;
+						break;
+					case 1:
+						directionsInterdites[1] = 1;
+						break;
+					default:
+						break;
+				}
+				switch((hisBody[i+1] - myPOSy) * (hisBody[i] == myPOSx)){
+					case -1:
+						directionsInterdites[0] = 1;
+						break;
+					case 1:
+						directionsInterdites[2] = 1;
+						break;
+					default:
+						break;
 				}
 			}
 			if (myPOSy == 0){directionsInterdites[0] = 1;}
@@ -134,25 +184,20 @@ int main(int argc, char const *argv[])
 				printf("--%d", directionsInterdites[i]);
 			}
 			printf("%d\n", directionsInterdites[myMove]);
-			while (directionsInterdites[myMove])
-			{
-				if (++myMove > 3)
+				while (directionsInterdites[myMove])
 				{
-					myMove = 0;
+					myMove += 3;
+					if (myMove > 3)
+					{
+						myMove %= 4;
+					}
 				}
-			}
-			printf("%d\n", 4==4);
-			switch(myMove){
-				case NORTH: myLastPosy = myPOSy; myPOSy--; break;
-				case WEST:	myLastPosx = myPOSx; myPOSx--; break;
-				case EAST:	myLastPosx = myPOSx; myPOSx++; break;
-				case SOUTH: myLastPosy = myPOSy; myPOSy++; break;
-			}
 
 
-			printf("(%d, %d)\n", myPOSx, myPOSy);
+
+
 /*
-manual
+//manual
 			scanf("%d", &move);
 			switch(move){
 				case 2: myMove = SOUTH; break;	
@@ -161,31 +206,57 @@ manual
 				case 8:	myMove = NORTH; break;
 			}
 */
+			switch(myMove){
+				case NORTH: myLastPosy = myPOSy; myPOSy--; break;
+				case WEST:	myLastPosx = myPOSx; myPOSx--; break;
+				case EAST:	myLastPosx = myPOSx; myPOSx++; break;
+				case SOUTH: myLastPosy = myPOSy; myPOSy++; break;
+			}
 
-			gameON = (ret == sendMove(myMove));
 			
-			if (!ctr%400 && ctr){
+
+
+			if (!(ctr % 20)){
 				mySize++;
-				myBody[2*mySize] = myLastPosx;
-				myBody[2*mySize + 1] = myLastPosy;
 			}else{
-				for (int i = 0; i < 2*(mySize-1); i+=2)
-				{
+				for (int i = 0; i < 2*(mySize - 1); i+=2){
 					myBody[i] = myBody[i+2];
 					myBody[i+1] = myBody[i+3];
 				}
-				myBody[mySize-2] = myLastPosx;
-				myBody[mySize-1] = myLastPosy;
 			}
-			
-			
+			myBody[2*(mySize-1)] = myPOSx;
+			myBody[2*(mySize-1) + 1] = myPOSy;
+
+			//si le jeu termine a cause de mon move, j'ai perdu
 			messageFinal = "DÉFAITE";
+			gameON = (ret == sendMove(myMove));
 		}else{
-			// si gameON devient 0 (perdu) pendant le tour adv, je sors du while avec victoire
 			gameON = (ret == getMove(&hisMove));
+			
+			switch(hisMove){
+				case NORTH: hisLastPosy = hisPOSy; hisPOSy--; break;
+				case WEST:	hisLastPosx = hisPOSx; hisPOSx--; break;
+				case EAST:	hisLastPosx = hisPOSx; hisPOSx++; break;
+				case SOUTH: hisLastPosy = hisPOSy; hisPOSy++; break;
+			}
+
+			if (ctr % 20 == 1){
+				hisSize++;
+			}else{
+				for (int i = 0; i < 2*(hisSize - 1); i+=2){
+					hisBody[i] = hisBody[i+2];
+					hisBody[i+1] = hisBody[i+3];
+				}
+			}
+			hisBody[2*(hisSize-1)] = hisPOSx;
+			hisBody[2*(hisSize-1) + 1] = hisPOSy;			
+
+			//si le jeu termine a cause de son move, j'ai gagne
 			messageFinal = "VICTOIRE";
 		}
 		myTurn = !myTurn;
+		ctr ++;
+
 	}
 	printf("%s\n", messageFinal);
 	closeConnection();

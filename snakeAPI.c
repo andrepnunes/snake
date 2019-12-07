@@ -22,7 +22,7 @@ Copyright 2019 T. Hilaire, T. Gautier
 #include <stdio.h>
 #include "snakeAPI.h"
 
-unsigned char nbW; 	/* store the nb of walls, used for getGame (the user do not have to pass them once again */
+unsigned int nbW; 	/* store the nb of walls, used for getGame (the user do not have to pass them once again */
 
 /* -------------------------------------
  * Initialize connection with the server
