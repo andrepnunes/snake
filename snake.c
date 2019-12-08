@@ -27,15 +27,20 @@ int main(int argc, char const *argv[])
 	// tableau murs
 	int* walls = (int*) (malloc(sizeof(int)));
 
-	char* messageFinal = "VICTOIRE";
+	char* messageFinal = "VICTRE";
+	char* messageFinal2 = "de";
+
 	
-	//mes coordonées : joueur 0
+	//	ME
+	
+	//		MY COORDS
 	int myPOSx;
 	int myPOSy;
 	int myLastPosx;
 	int myLastPosy;
 
-	//ses coordonées : joueur 1
+	//	HIM
+	//		HIS COORDS
 	int hisPOSx;
 	int hisPOSy;
 	int hisLastPosx;
@@ -62,7 +67,12 @@ int main(int argc, char const *argv[])
 	connectToServer("polydev.cia-polytech-sorbonne.fr", 8080, "ovni");
 
 	// seed = 123
-	waitForSnakeGame("RANDOM_PLAYER difficulty=0 timeout=1000 seed=123 start=0", gameName, &sizeX, &sizeY, &nbWalls);
+	waitForSnakeGame("SUPER_PLAYER difficulty=0 timeout=1000 seed=420 start=0", gameName, &sizeX, &sizeY, &nbWalls);
+	int obstacles[sizeX*sizeY];
+	
+
+	printf("%d\n", sizeX);
+//	myTurn != myTurn;	//IF START = 1
 	
 	// init pos joueur 0
 	myPOSx = 2;
@@ -94,12 +104,16 @@ int main(int argc, char const *argv[])
 	myMove = 0;
 	while(gameON){
 		//printArena();
+
 		if (myTurn)
 		{
 			printArena(); // so faz print na minha vez
 			
-
-
+			for (int i = 0; i < sizeX*sizeY; ++i)
+			{
+				obstacles[i]=0;
+			}
+			
 			for (int i = 0; i < 4; ++i)
 			{
 				directionsInterdites[i] = 0;
@@ -125,7 +139,7 @@ int main(int argc, char const *argv[])
 			}
 
 
-			// SELF - AWARENESS
+			// SELF-AWARENESS
 			for (int i = 0; i < mySize*2; i+=2)
 			{
 				switch((myBody[i] - myPOSx) * (myBody[i+1] == myPOSy)){
@@ -148,9 +162,11 @@ int main(int argc, char const *argv[])
 					default:
 						break;
 				}
+
+				obstacles[myBody[i] + sizeX * myBody[i+1]] = 1;
 			}
 
-			// ENEMY - AWARENESS
+			// ENEMY-AWARENESS
 			for (int i = 0; i < hisSize*2; i+=2)
 			{
 				switch((hisBody[i] - myPOSx) * (hisBody[i+1] == myPOSy)){
@@ -173,25 +189,48 @@ int main(int argc, char const *argv[])
 					default:
 						break;
 				}
+
+				obstacles[hisBody[i] + sizeX * hisBody[i+1]] = 1;
 			}
+
+			// DODGE WALLS
 			if (myPOSy == 0){directionsInterdites[0] = 1;}
 			if (myPOSx == 0){directionsInterdites[3] = 1;}
 			if (myPOSy == sizeY - 1){directionsInterdites[2] = 1;}
 			if (myPOSx == sizeX - 1){directionsInterdites[1] = 1;}
 
-			for (int i = 0; i < 4; ++i)
+			// DETECT 1 SQUARE TRAPS
+			if ((obstacles[myPOSx - 1 + sizeX*(myPOSy - 1)] || myPOSx == 0) && (obstacles[myPOSx + sizeX*(myPOSy - 2)] || myPOSy == 1) && (obstacles[myPOSx + 1 + sizeX*(myPOSy - 1)] || myPOSx == sizeX - 1))
 			{
-				printf("--%d", directionsInterdites[i]);
+				directionsInterdites[0] = 1;	//NORTH
 			}
-			printf("%d\n", directionsInterdites[myMove]);
-				while (directionsInterdites[myMove])
+			if ((obstacles[myPOSx - 1 + sizeX*(myPOSy + 1)] || myPOSx == 0) && (obstacles[myPOSx + sizeX*(myPOSy + 2)] || myPOSy == sizeY - 2) && (obstacles[myPOSx + 1 + sizeX*(myPOSy + 1)] || myPOSx == sizeX - 1))
+			{
+				directionsInterdites[2] = 1;	//SOUTH
+			}
+			if ((obstacles[myPOSx - 1 + sizeX*(myPOSy + 1)] || myPOSy == sizeY - 1) && (obstacles[myPOSx - 2 + sizeX*myPOSy] || myPOSx == 1) && (obstacles[myPOSx - 1 + sizeX*(myPOSy - 1)] || myPOSy == 0))
+			{
+				directionsInterdites[1] = 1;	//EAST
+			}
+			//if ((obstacles[myPOSx + 1 + sizeX*(myPOSy + 1)] || myPOSy == sizeY - 1) && (obstacles[myPOSx + 2 + sizeX*myPOSy] || myPOSx == sizeX - 2) && (obstacles[myPOSx + 1 + sizeX*(myPOSy - 1)] || myPOSy == 0))
+			//{
+			//	directionsInterdites[3] = 1;	//WEST
+			//}
+
+
+			while (directionsInterdites[myMove])
+			{
+				myMove += 3;
+				if (myMove > 3)
 				{
-					myMove += 3;
-					if (myMove > 3)
-					{
-						myMove %= 4;
-					}
+					myMove %= 4;
 				}
+				
+				if (directionsInterdites[0] == directionsInterdites[1] == directionsInterdites[2] == directionsInterdites[3] == 1)
+				{
+					break;
+				}
+			}
 
 
 
@@ -229,6 +268,7 @@ int main(int argc, char const *argv[])
 
 			//si le jeu termine a cause de mon move, j'ai perdu
 			messageFinal = "DÉFAITE";
+			messageFinal2;
 			gameON = (ret == sendMove(myMove));
 		}else{
 			gameON = (ret == getMove(&hisMove));
@@ -259,6 +299,15 @@ int main(int argc, char const *argv[])
 
 	}
 	printf("%s\n", messageFinal);
+
+	//why he lost
+	switch(hisMove){
+		case 0: printf("NORTH\n"); 	break;
+		case 1: printf("EAST\n");	break;
+		case 2: printf("SOUTH\n");	break;
+		case 3: printf("WEST\n");	break;
+	}
+	
 	closeConnection();
 	free(walls);
 	return 0;
