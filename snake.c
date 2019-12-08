@@ -67,11 +67,11 @@ int main(int argc, char const *argv[])
 	connectToServer("polydev.cia-polytech-sorbonne.fr", 8080, "ovni");
 
 	// seed = 123
-	waitForSnakeGame("SUPER_PLAYER difficulty=0 timeout=1000 seed=420 start=0", gameName, &sizeX, &sizeY, &nbWalls);
+	waitForSnakeGame("SUPER_PLAYER difficulty=0 timeout=1000 seed=10 start=0", gameName, &sizeX, &sizeY, &nbWalls);
 	int obstacles[sizeX*sizeY];
 	
 
-	printf("%d\n", sizeX);
+//	printf("%d\n", sizeX);
 //	myTurn != myTurn;	//IF START = 1
 	
 	// init pos joueur 0
@@ -171,9 +171,11 @@ int main(int argc, char const *argv[])
 			{
 				switch((hisBody[i] - myPOSx) * (hisBody[i+1] == myPOSy)){
 					case -1:
+					case -2:
 						directionsInterdites[3] = 1;
 						break;
 					case 1:
+					case 2:
 						directionsInterdites[1] = 1;
 						break;
 					default:
@@ -181,9 +183,11 @@ int main(int argc, char const *argv[])
 				}
 				switch((hisBody[i+1] - myPOSy) * (hisBody[i] == myPOSx)){
 					case -1:
+					case -2:
 						directionsInterdites[0] = 1;
 						break;
 					case 1:
+					case 2:
 						directionsInterdites[2] = 1;
 						break;
 					default:
@@ -193,6 +197,46 @@ int main(int argc, char const *argv[])
 				obstacles[hisBody[i] + sizeX * hisBody[i+1]] = 1;
 			}
 
+			obstacles[myPOSx + myPOSy * sizeX] = 0;// ma tete n'est pas un obstacle
+
+			if (!(ctr%20) || 1)
+			{
+				obstacles[myBody[2*(mySize - 1)] + myBody[2*mySize - 1] * sizeX] = 0;
+				obstacles[hisBody[2*(hisSize - 1)] + hisBody[2*hisSize - 1] * sizeX] = 0;
+			}
+
+			for (int i = 0; i < sizeX*sizeY; ++i)
+			{
+				/*if (((obstacles[i - 1] || i%sizeX == 0) && (obstacles[i - sizeX] || i/sizeX == 0) && (obstacles[i + 1] || i%sizeX == sizeX - 1)))
+				{
+					obstacles[i] = 1;	//NORTH
+					//i=0;
+				}*/
+				/*if (((obstacles[i - 1] || i%sizeX == 0) && (obstacles[i + sizeX] || i/sizeX == sizeY - 1) && (obstacles[i + 1] || i%sizeX == sizeX - 1)))
+				{
+					obstacles[i] = 1;	//SOUTH
+					//i=0;
+				}*/
+				if (((obstacles[i + sizeX] || i/sizeX == sizeY - 1) && (obstacles[i + 1] || i%sizeX == 1) && (obstacles[i - sizeX] || i/sizeX == 0)))
+				{
+					obstacles[i] = 1;	//EAST
+					//i=0;
+				}
+				if (((obstacles[i + sizeX] || i/sizeX == sizeY - 1) && (obstacles[i - 1] || i%sizeX == sizeX - 2) && (obstacles[i - sizeX] || i/sizeX == 0)))
+				{
+					obstacles[i] = 1;	//WEST
+					//i=0;
+				}
+			}
+
+			for (int i = 0; i < sizeY*sizeX; ++i)
+			{
+				printf("%d ", obstacles[i]);
+				if (i%sizeX == sizeX  - 1)
+				{
+					printf("\n");
+				}
+			}
 			// DODGE WALLS
 			if (myPOSy == 0){directionsInterdites[0] = 1;}
 			if (myPOSx == 0){directionsInterdites[3] = 1;}
@@ -210,16 +254,18 @@ int main(int argc, char const *argv[])
 			}
 			if ((obstacles[myPOSx - 1 + sizeX*(myPOSy + 1)] || myPOSy == sizeY - 1) && (obstacles[myPOSx - 2 + sizeX*myPOSy] || myPOSx == 1) && (obstacles[myPOSx - 1 + sizeX*(myPOSy - 1)] || myPOSy == 0))
 			{
-				directionsInterdites[1] = 1;	//EAST
+				directionsInterdites[3] = 1;	//EAST
 			}
-			//if ((obstacles[myPOSx + 1 + sizeX*(myPOSy + 1)] || myPOSy == sizeY - 1) && (obstacles[myPOSx + 2 + sizeX*myPOSy] || myPOSx == sizeX - 2) && (obstacles[myPOSx + 1 + sizeX*(myPOSy - 1)] || myPOSy == 0))
-			//{
-			//	directionsInterdites[3] = 1;	//WEST
-			//}
+			if ((obstacles[myPOSx + 1 + sizeX*(myPOSy + 1)] || myPOSy == sizeY - 1) && (obstacles[myPOSx + 2 + sizeX*myPOSy] || myPOSx == sizeX - 2) && (obstacles[myPOSx + 1 + sizeX*(myPOSy - 1)] || myPOSy == 0))
+			{
+				directionsInterdites[2] = 1;	//WEST
+			}
+
 
 
 			while (directionsInterdites[myMove])
 			{
+				//myMove += 1;
 				myMove += 3;
 				if (myMove > 3)
 				{
