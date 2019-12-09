@@ -66,12 +66,10 @@ int main(int argc, char const *argv[])
 	int gameON = 1;
 	connectToServer("polydev.cia-polytech-sorbonne.fr", 8080, "ovni");
 
-	// seed = 123
-	waitForSnakeGame("SUPER_PLAYER difficulty=0 timeout=1000 seed=10 start=0", gameName, &sizeX, &sizeY, &nbWalls);
+	waitForSnakeGame("SUPER_PLAYER difficulty=2 timeout=1000 seed=1 start=0", gameName, &sizeX, &sizeY, &nbWalls);
 	int obstacles[sizeX*sizeY];
 	
 
-//	printf("%d\n", sizeX);
 //	myTurn != myTurn;	//IF START = 1
 	
 	// init pos joueur 0
@@ -101,7 +99,7 @@ int main(int argc, char const *argv[])
 	// = 1 si c'est mon tour, = 0 sinon
 	myTurn = !getSnakeArena(walls); 
 
-	myMove = 0;
+	myMove = 1;
 	while(gameON){
 		//printArena();
 
@@ -109,32 +107,43 @@ int main(int argc, char const *argv[])
 		{
 			printArena(); // so faz print na minha vez
 			
-			for (int i = 0; i < sizeX*sizeY; ++i)
-			{
-				obstacles[i]=0;
-			}
-			
 			for (int i = 0; i < 4; ++i)
 			{
 				directionsInterdites[i] = 0;
 			}
 			
+			for (int i = 0; i < sizeX*sizeY; ++i)
+			{
+				obstacles[i]=0;
+			}
+
 			//wall awarness
 			for (int i = 0; i < 4*nbWalls; i+=2){
 
-				if (myPOSx == walls[i] && walls[i] == walls[i-2] && myPOSy >= walls[i+1] && myPOSy <= walls[i+3])		//meme coord barriere && je suis a GAUCHE de la barriere && barriere verticale && je suis devant la barriere
+				if (myPOSx == walls[i] && myPOSy == walls[i+1])
 				{
-					directionsInterdites[1] = 1;
-				}else if (myPOSx == walls[i] && walls[i] == walls[i+2] && myPOSy >= walls[i+1] && myPOSy <= walls[i+3])		//meme coord barriere && je suis a DROITE de la barriere && barriere verticale && je suis devant la barriere
-				{
-					directionsInterdites[3] = 1;
-				}
-				if (myPOSy == walls[i+1] && walls[i] == walls[i-2] && myPOSx >= walls[i-1] && myPOSx <= walls[i+1])		//meme coord barriere && je suis a HAUT de la barriere && barriere verticale && je suis devant la barriere
-				{
-					directionsInterdites[2] = 1;
-				}else if (myPOSy == walls[i+1] && walls[i] == walls[i+2] && myPOSx >= walls[i-1] && myPOSx <= walls[i+1])		//meme coord barriere && je suis a BAS de la barriere && barriere verticale && je suis devant la barriere
-				{
-					directionsInterdites[0] = 1;
+					if (walls[i+2] == walls[i]) 			// barriere nord-sud
+					{
+						if (walls[i+1] > walls[i+3]) 		// je suis en bas
+						{
+							//directionsInterdites[0] = 1;
+							obstacles[myPOSx + (myPOSy - 1)*sizeX] = 1;
+						}else{								// je suis en haut
+							//directionsInterdites[2] = 1;
+							obstacles[myPOSx + (myPOSy + 1)*sizeX] = 1;
+						}
+					}
+					if (walls[i+3] == walls[i+1])			// barriere west-east
+					{
+						if (walls[i]>walls[i+2])
+						{
+							//directionsInterdites[3] = 1;
+							obstacles[myPOSx - 1 + myPOSy*sizeX] = 1;
+						}else{
+							//directionsInterdites[1] = 1;
+							obstacles[myPOSx + 1 + myPOSy*sizeX] = 1;
+						}
+					}
 				}
 			}
 
@@ -204,19 +213,19 @@ int main(int argc, char const *argv[])
 				obstacles[myBody[2*(mySize - 1)] + myBody[2*mySize - 1] * sizeX] = 0;
 				obstacles[hisBody[2*(hisSize - 1)] + hisBody[2*hisSize - 1] * sizeX] = 0;
 			}
-
+/*
 			for (int i = 0; i < sizeX*sizeY; ++i)
 			{
-				/*if (((obstacles[i - 1] || i%sizeX == 0) && (obstacles[i - sizeX] || i/sizeX == 0) && (obstacles[i + 1] || i%sizeX == sizeX - 1)))
+				if (((obstacles[i - 1] || i%sizeX == 0) && (obstacles[i - sizeX] || i/sizeX == 0) && (obstacles[i + 1] || i%sizeX == sizeX - 1)))
 				{
 					obstacles[i] = 1;	//NORTH
 					//i=0;
-				}*/
-				/*if (((obstacles[i - 1] || i%sizeX == 0) && (obstacles[i + sizeX] || i/sizeX == sizeY - 1) && (obstacles[i + 1] || i%sizeX == sizeX - 1)))
+				}
+				if (((obstacles[i - 1] || i%sizeX == 0) && (obstacles[i + sizeX] || i/sizeX == sizeY - 1) && (obstacles[i + 1] || i%sizeX == sizeX - 1)))
 				{
 					obstacles[i] = 1;	//SOUTH
 					//i=0;
-				}*/
+				}
 				if (((obstacles[i + sizeX] || i/sizeX == sizeY - 1) && (obstacles[i + 1] || i%sizeX == 1) && (obstacles[i - sizeX] || i/sizeX == 0)))
 				{
 					obstacles[i] = 1;	//EAST
@@ -227,16 +236,8 @@ int main(int argc, char const *argv[])
 					obstacles[i] = 1;	//WEST
 					//i=0;
 				}
-			}
+			}*/
 
-			for (int i = 0; i < sizeY*sizeX; ++i)
-			{
-				printf("%d ", obstacles[i]);
-				if (i%sizeX == sizeX  - 1)
-				{
-					printf("\n");
-				}
-			}
 			// DODGE WALLS
 			if (myPOSy == 0){directionsInterdites[0] = 1;}
 			if (myPOSx == 0){directionsInterdites[3] = 1;}
@@ -261,7 +262,14 @@ int main(int argc, char const *argv[])
 				directionsInterdites[2] = 1;	//WEST
 			}
 
-
+			for (int i = 0; i < sizeY*sizeX; ++i)
+			{
+				printf("%d ", obstacles[i]);
+				if (i%sizeX == sizeX - 1)
+				{
+					printf("\n");
+				}
+			}
 
 			while (directionsInterdites[myMove])
 			{
