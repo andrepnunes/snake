@@ -66,7 +66,7 @@ int main(int argc, char const *argv[])
 	int gameON = 1;
 	connectToServer("polydev.cia-polytech-sorbonne.fr", 8080, "ovni");
 
-	waitForSnakeGame("SUPER_PLAYER difficulty=2 timeout=1000 seed=1 start=0", gameName, &sizeX, &sizeY, &nbWalls);
+	waitForSnakeGame("SUPER_PLAYER difficulty=2 timeout=1000 seed=420 start=0", gameName, &sizeX, &sizeY, &nbWalls);
 	int obstacles[sizeX*sizeY];
 	
 
@@ -106,7 +106,12 @@ int main(int argc, char const *argv[])
 		if (myTurn)
 		{
 			printArena(); // so faz print na minha vez
-			
+			/*
+			for (int i = 0; i < 4*nbWalls; i+=4)
+			{
+				printf("(%d\t%d)\t-\t(%d\t%d)\n", walls[i], walls[i+1], walls[i+2], walls[i+3]);
+			}
+*/
 			for (int i = 0; i < 4; ++i)
 			{
 				directionsInterdites[i] = 0;
@@ -118,39 +123,100 @@ int main(int argc, char const *argv[])
 			}
 
 			//wall awarness
-			for (int i = 0; i < 4*nbWalls; i+=2){
-
-				if (myPOSx == walls[i] && myPOSy == walls[i+1])
+			for (int i = 0; i < 4*nbWalls; i+=4){
+				if (walls[i] == walls[i+2] && walls[i] ==  myPOSx) // barreira horizontal
 				{
-					if (walls[i+2] == walls[i]) 			// barriere nord-sud
+					if (myPOSy == walls[i+1]) // se eu tou colado a uma parede
 					{
-						if (walls[i+1] > walls[i+3]) 		// je suis en bas
+						if (myPOSy < walls[i + 3]) // tou em CIMA
 						{
-							//directionsInterdites[0] = 1;
-							obstacles[myPOSx + (myPOSy - 1)*sizeX] = 1;
-						}else{								// je suis en haut
-							//directionsInterdites[2] = 1;
-							obstacles[myPOSx + (myPOSy + 1)*sizeX] = 1;
+							directionsInterdites[2]=1;
+						}else{
+							directionsInterdites[0]=1;
 						}
 					}
-					if (walls[i+3] == walls[i+1])			// barriere west-east
+					if (myPOSy == walls[i+3])
 					{
-						if (walls[i]>walls[i+2])
+						if (myPOSy < walls[i + 1]) // tou em CIMA
 						{
-							//directionsInterdites[3] = 1;
-							obstacles[myPOSx - 1 + myPOSy*sizeX] = 1;
+							directionsInterdites[2]=1;
 						}else{
-							//directionsInterdites[1] = 1;
-							obstacles[myPOSx + 1 + myPOSy*sizeX] = 1;
+							directionsInterdites[0]=1;
+						}
+					}
+				}
+				if (walls[i+1] == walls[i+3] && walls[i+1] == myPOSy) // barreira vertical
+				{
+					if (myPOSx == walls[i]) // se eu tou colado a uma parede
+					{
+						if (myPOSx < walls[i + 2]) // tou a ESQUERDA
+						{
+							//obstacles[myPOSx + 1 + (myPOSy)*sizeX] = 1;
+							directionsInterdites[1]=1;
+						}else{
+							//obstacles[myPOSx - 1 + (myPOSy)*sizeX] = 1;
+							directionsInterdites[3]=1;
+						}
+					}
+					if (myPOSx == walls[i+2])
+					{
+						if (myPOSx < walls[i]) // tou a ESQUERDA
+						{
+							//obstacles[myPOSx + 1 + (myPOSy)*sizeX] = 1;
+							directionsInterdites[1]=1;
+						}else{
+							//obstacles[myPOSx - 1 + (myPOSy)*sizeX] = 1;
+							directionsInterdites[3]=1;
 						}
 					}
 				}
 			}
 
+			for (int i = 0; i < sizeX*sizeY; i++)
+			{
+				int np = 0;
+				//murs repetes
+				int flag1 = 1;
+				int flag2 = 1;
+				int flag3 = 1;
+				int flag4 = 1;
+				for (int j = 0; j < 4*nbWalls; j+=2)
+				{
+					//N
+					if ((((i%sizeX == walls[j] && i/sizeX == walls[j+1] && i%sizeX == walls[j+2] && i/sizeX - 1 == walls[j+3])||(i%sizeX == walls[j] && i/sizeX - 1 == walls[j+1] && i%sizeX == walls[j+2] && i/sizeX == walls[j+3])) && flag1) || obstacles[i - sizeX])
+					{
+						flag1 = 0;
+						np++;
+					}
+					//E
+					if ((((i%sizeX == walls[j] && i/sizeX == walls[j+1] && i%sizeX + 1 == walls[j+2] && i/sizeX == walls[j+3])||(i%sizeX + 1 == walls[j] && i/sizeX == walls[j+1] && i%sizeX == walls[j+2] && i/sizeX == walls[j+3])) && flag2) || obstacles[i + 1])
+					{
+						flag2 = 0;
+						np++;
+					}
+					//S
+					if ((((i%sizeX == walls[j] && i/sizeX == walls[j+1] && i%sizeX == walls[j+2] && i/sizeX + 1 == walls[j+3])||(i%sizeX == walls[j] && i/sizeX + 1 == walls[j+1] && i%sizeX == walls[j+2] && i/sizeX == walls[j+3])) && flag3) || obstacles[i + sizeX])
+					{
+						flag3 = 0;
+						np++;
+					}
+					//W
+					if ((((i%sizeX == walls[j] && i/sizeX == walls[j+1] && i%sizeX - 1 == walls[j+2] && i/sizeX == walls[j+3])||(i%sizeX - 1 == walls[j] && i/sizeX == walls[j+1] && i%sizeX == walls[j+2] && i/sizeX == walls[j+3])) && flag4) || obstacles[i - 1])
+					{
+						flag4 = 0;
+						np++;
+					}
+				}
+				if (np == 3)
+				{
+					obstacles[i] = 1;
+				}
+			}
+
+
 
 			// SELF-AWARENESS
-			for (int i = 0; i < mySize*2; i+=2)
-			{
+			for (int i = 0; i < mySize*2; i+=2)			{
 				switch((myBody[i] - myPOSx) * (myBody[i+1] == myPOSy)){
 					case -1:
 						directionsInterdites[3] = 1;
@@ -176,15 +242,14 @@ int main(int argc, char const *argv[])
 			}
 
 			// ENEMY-AWARENESS
-			for (int i = 0; i < hisSize*2; i+=2)
-			{
+			for (int i = 0; i < hisSize*2; i+=2){
 				switch((hisBody[i] - myPOSx) * (hisBody[i+1] == myPOSy)){
 					case -1:
-					case -2:
+					//case -2:
 						directionsInterdites[3] = 1;
 						break;
 					case 1:
-					case 2:
+					//case 2:
 						directionsInterdites[1] = 1;
 						break;
 					default:
@@ -192,11 +257,11 @@ int main(int argc, char const *argv[])
 				}
 				switch((hisBody[i+1] - myPOSy) * (hisBody[i] == myPOSx)){
 					case -1:
-					case -2:
+					//case -2:
 						directionsInterdites[0] = 1;
 						break;
 					case 1:
-					case 2:
+					//case 2:
 						directionsInterdites[2] = 1;
 						break;
 					default:
@@ -213,36 +278,18 @@ int main(int argc, char const *argv[])
 				obstacles[myBody[2*(mySize - 1)] + myBody[2*mySize - 1] * sizeX] = 0;
 				obstacles[hisBody[2*(hisSize - 1)] + hisBody[2*hisSize - 1] * sizeX] = 0;
 			}
-/*
-			for (int i = 0; i < sizeX*sizeY; ++i)
-			{
-				if (((obstacles[i - 1] || i%sizeX == 0) && (obstacles[i - sizeX] || i/sizeX == 0) && (obstacles[i + 1] || i%sizeX == sizeX - 1)))
-				{
-					obstacles[i] = 1;	//NORTH
-					//i=0;
-				}
-				if (((obstacles[i - 1] || i%sizeX == 0) && (obstacles[i + sizeX] || i/sizeX == sizeY - 1) && (obstacles[i + 1] || i%sizeX == sizeX - 1)))
-				{
-					obstacles[i] = 1;	//SOUTH
-					//i=0;
-				}
-				if (((obstacles[i + sizeX] || i/sizeX == sizeY - 1) && (obstacles[i + 1] || i%sizeX == 1) && (obstacles[i - sizeX] || i/sizeX == 0)))
-				{
-					obstacles[i] = 1;	//EAST
-					//i=0;
-				}
-				if (((obstacles[i + sizeX] || i/sizeX == sizeY - 1) && (obstacles[i - 1] || i%sizeX == sizeX - 2) && (obstacles[i - sizeX] || i/sizeX == 0)))
-				{
-					obstacles[i] = 1;	//WEST
-					//i=0;
-				}
-			}*/
 
 			// DODGE WALLS
 			if (myPOSy == 0){directionsInterdites[0] = 1;}
 			if (myPOSx == 0){directionsInterdites[3] = 1;}
 			if (myPOSy == sizeY - 1){directionsInterdites[2] = 1;}
 			if (myPOSx == sizeX - 1){directionsInterdites[1] = 1;}
+
+			// DODGE obstacles
+			if (obstacles[myPOSx     + (sizeX * (myPOSy - 1))]){directionsInterdites[0] = 1;}
+			if (obstacles[myPOSx + 1 + (sizeX *  myPOSy     )]){directionsInterdites[1] = 1;}
+			if (obstacles[myPOSx     + (sizeX * (myPOSy + 1))]){directionsInterdites[2] = 1;}
+			if (obstacles[myPOSx - 1 + (sizeX *  myPOSy     )]){directionsInterdites[3] = 1;}
 
 			// DETECT 1 SQUARE TRAPS
 			if ((obstacles[myPOSx - 1 + sizeX*(myPOSy - 1)] || myPOSx == 0) && (obstacles[myPOSx + sizeX*(myPOSy - 2)] || myPOSy == 1) && (obstacles[myPOSx + 1 + sizeX*(myPOSy - 1)] || myPOSx == sizeX - 1))
@@ -261,7 +308,8 @@ int main(int argc, char const *argv[])
 			{
 				directionsInterdites[2] = 1;	//WEST
 			}
-
+/*
+			//affiche obstacles
 			for (int i = 0; i < sizeY*sizeX; ++i)
 			{
 				printf("%d ", obstacles[i]);
@@ -270,17 +318,17 @@ int main(int argc, char const *argv[])
 					printf("\n");
 				}
 			}
-
+/**/
 			while (directionsInterdites[myMove])
 			{
-				//myMove += 1;
-				myMove += 3;
+				myMove += 1;
+				//myMove += 3;
 				if (myMove > 3)
 				{
 					myMove %= 4;
 				}
 				
-				if (directionsInterdites[0] == directionsInterdites[1] == directionsInterdites[2] == directionsInterdites[3] == 1)
+				if (directionsInterdites[0] == 1 && directionsInterdites[1] == 1 && directionsInterdites[2] == 1 && directionsInterdites[3] == 1)
 				{
 					break;
 				}
@@ -322,7 +370,7 @@ int main(int argc, char const *argv[])
 
 			//si le jeu termine a cause de mon move, j'ai perdu
 			messageFinal = "DÉFAITE";
-			messageFinal2;
+
 			gameON = (ret == sendMove(myMove));
 		}else{
 			gameON = (ret == getMove(&hisMove));
@@ -354,6 +402,10 @@ int main(int argc, char const *argv[])
 	}
 	printf("%s\n", messageFinal);
 
+	for (int i = 0; i < 4; ++i)
+	{
+		printf("--%d", directionsInterdites[i]);
+	}
 	//why he lost
 	switch(hisMove){
 		case 0: printf("NORTH\n"); 	break;
