@@ -60,7 +60,7 @@ int main(int argc, char const *argv[])
 	int gameON = 1;
 	connectToServer("polydev.cia-polytech-sorbonne.fr", 8080, "ovni");
 
-	waitForSnakeGame("SUPER_PLAYER difficulty=1 timeout=1000 seed=5 start=0", gameName, &sizeX, &sizeY, &nbWalls);
+	waitForSnakeGame("SUPER_PLAYER difficulty=2 timeout=1000 seed=364648 start=0", gameName, &sizeX, &sizeY, &nbWalls);
 	int obstacles[sizeX*sizeY];
 	
 
@@ -98,6 +98,7 @@ int main(int argc, char const *argv[])
 		//printArena();
 		if (myTurn)
 		{
+			//int aaa = 1;
 			printArena(); // so faz print na minha vez
 /*			
 			for (int i = 0; i < 4*nbWalls; i+=4)
@@ -105,6 +106,7 @@ int main(int argc, char const *argv[])
 				printf("(%d\t%d)\t-\t(%d\t%d)\n", walls[i], walls[i+1], walls[i+2], walls[i+3]);
 			}
 /**/
+//aaa:
 			for (int i = 0; i < 4; ++i)
 			{
 				directionsInterdites[i] = 0;
@@ -216,7 +218,7 @@ int main(int argc, char const *argv[])
 					default:
 						break;
 				}
-				switch((hisPOSx - myPOSx) * (hisPOSy == myPOSy - 1 || hisPOSy == myPOSy + 1)){
+				/*switch((hisPOSx - myPOSx) * (hisPOSy == myPOSy - 1 || hisPOSy == myPOSy + 1)){
 					case -2:
 						directionsInterdites[3] = 1;
 						break;
@@ -235,7 +237,7 @@ int main(int argc, char const *argv[])
 						break;
 					default:
 						break;
-				}
+				}*/
 
 				obstacles[hisBody[i] + sizeX * hisBody[i+1]] = 1;
 			}
@@ -244,23 +246,35 @@ int main(int argc, char const *argv[])
 			obstacles[myPOSx + myPOSy * sizeX] = 0;// ma tete n'est pas un obstacle
 
 			//difficulté 0
-			if (hisPOSx)
-			{
-				obstacles[hisPOSx - 1 + hisPOSy * sizeX] = 1;
-			}
-			if (hisPOSx != sizeX-1)
-			{
-				obstacles[hisPOSx + 1 + hisPOSy * sizeX] = 1;
-			}
-			if (hisPOSy != sizeY-1)
-			{
-				obstacles[hisPOSx + (hisPOSy+1) * sizeX] = 1;
-			}
-			if (hisPOSy)
-			{
-				obstacles[hisPOSx + (hisPOSy-1) * sizeX] = 1;
-			}
+			//if (aaa)
+			//{
+				if (hisPOSx)
+				{
+					obstacles[hisPOSx - 1 + hisPOSy * sizeX] = 1;
+				}
+				if (hisPOSx != sizeX-1)
+				{
+					obstacles[hisPOSx + 1 + hisPOSy * sizeX] = 1;
+				}
+				if (hisPOSy != sizeY-1)
+				{
+					obstacles[hisPOSx + (hisPOSy+1) * sizeX] = 1;
+				}
+				if (hisPOSy)
+				{
+					obstacles[hisPOSx + (hisPOSy-1) * sizeX] = 1;
+				}
+			//}else{
+			/*
+				if (hisPOSx){obstacles[hisPOSx - 1 + hisPOSy * sizeX] = 0;}
+				if (hisPOSx != sizeX-1){obstacles[hisPOSx + 1 + hisPOSy * sizeX] = 0;}
+				if (hisPOSy != sizeY-1){obstacles[hisPOSx + (hisPOSy+1) * sizeX] = 0;}
+				if (hisPOSy){obstacles[hisPOSx + (hisPOSy-1) * sizeX] = 0;}
+				*/
+			//}
+			
 
+			//fermeture des pieges
 			for (int i = 0; i < sizeX*sizeY; ++i)
 			{
 				//N
@@ -268,6 +282,7 @@ int main(int argc, char const *argv[])
 				{
 					obstacles[i] = 1;
 					i=0;
+					
 				}
 				//E
 				if ((i/sizeX == 0 || obstacles[i - sizeX]) && (i/sizeX == sizeY-1 || obstacles[i + sizeX]) && (i%sizeX == sizeX-1 || obstacles[i + 1]) && obstacles[i]==0 && i != myPOSx + myPOSy*sizeX)
@@ -367,6 +382,31 @@ int main(int argc, char const *argv[])
 			if (obstacles[myPOSx     + (sizeX * (myPOSy + 1))]){directionsInterdites[2] = 1;}
 			if (obstacles[myPOSx - 1 + (sizeX *  myPOSy     )]){directionsInterdites[3] = 1;}
 
+			// ne pas s'autoenfermer
+			for (int i = 2; i < mySize*2; i+=2)
+			{
+				//N
+				if (myMove == 0 && myBody[i] == myPOSx && myBody[i+1] == myPOSy - 1)
+				{
+					myMove++;
+				}
+				//E
+				if (myMove == 1 && myBody[i] == myPOSx + 1 && myBody[i+1] == myPOSy)
+				{
+					myMove++;
+				}
+				//S
+				if (myMove == 2 && myBody[i] == myPOSx && myBody[i+1] == myPOSy + 1)
+				{
+					myMove++;
+				}
+				//W
+				if (myMove == 3 && myBody[i] == myPOSx - 1 && myBody[i+1] == myPOSy)
+				{
+					myMove++;
+				}
+			}
+
 /*
 			// DETECT 1 SQUARE TRAPS nearby
 			if ((obstacles[myPOSx - 1 + sizeX*(myPOSy - 1)] || myPOSx == 0) && (obstacles[myPOSx + sizeX*(myPOSy - 2)] || myPOSy == 1) && (obstacles[myPOSx + 1 + sizeX*(myPOSy - 1)] || myPOSx == sizeX - 1))
@@ -388,7 +428,7 @@ int main(int argc, char const *argv[])
 /**/
 
 
-/**/
+/*
 			//affiche obstacles
 			for (int i = 0; i < sizeY*sizeX; ++i)
 			{
@@ -410,10 +450,16 @@ int main(int argc, char const *argv[])
 					myMove %= 4;
 				}
 				
-				if (directionsInterdites[0] == 1 && directionsInterdites[1] == 1 && directionsInterdites[2] == 1 && directionsInterdites[3] == 1)
+				if (directionsInterdites[0] == 1 && directionsInterdites[1] == 1 && directionsInterdites[2] == 1 && directionsInterdites[3] == 1 /*&& aaa*/)
 				{
 					break;
+					//aaa = 0;
+					//goto aaa;
 				}
+				//if (aaa == 0)
+				//{
+				//	break;
+				//}
 			}
 
 
