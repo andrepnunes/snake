@@ -60,7 +60,7 @@ int main(int argc, char const *argv[])
 	int gameON = 1;
 	connectToServer("polydev.cia-polytech-sorbonne.fr", 8080, "ovni");
 
-	waitForSnakeGame("SUPER_PLAYER difficulty=2 timeout=1000 seed=135 start=0", gameName, &sizeX, &sizeY, &nbWalls);
+	waitForSnakeGame("SUPER_PLAYER difficulty=1 timeout=1000 seed=5 start=0", gameName, &sizeX, &sizeY, &nbWalls);
 	int obstacles[sizeX*sizeY];
 	
 
@@ -96,7 +96,6 @@ int main(int argc, char const *argv[])
 	myMove = 1;
 	while(gameON){
 		//printArena();
-
 		if (myTurn)
 		{
 			printArena(); // so faz print na minha vez
@@ -244,6 +243,55 @@ int main(int argc, char const *argv[])
 
 			obstacles[myPOSx + myPOSy * sizeX] = 0;// ma tete n'est pas un obstacle
 
+			//difficulté 0
+			if (hisPOSx)
+			{
+				obstacles[hisPOSx - 1 + hisPOSy * sizeX] = 1;
+			}
+			if (hisPOSx != sizeX-1)
+			{
+				obstacles[hisPOSx + 1 + hisPOSy * sizeX] = 1;
+			}
+			if (hisPOSy != sizeY-1)
+			{
+				obstacles[hisPOSx + (hisPOSy+1) * sizeX] = 1;
+			}
+			if (hisPOSy)
+			{
+				obstacles[hisPOSx + (hisPOSy-1) * sizeX] = 1;
+			}
+
+			for (int i = 0; i < sizeX*sizeY; ++i)
+			{
+				//N
+				if ((i/sizeX == 0 || obstacles[i - sizeX]) && (i%sizeX == 0 || obstacles[i - 1]) && (i%sizeX == sizeX-1 || obstacles[i + 1]) && obstacles[i]==0 && i != myPOSx + myPOSy*sizeX)
+				{
+					obstacles[i] = 1;
+					i=0;
+				}
+				//E
+				if ((i/sizeX == 0 || obstacles[i - sizeX]) && (i/sizeX == sizeY-1 || obstacles[i + sizeX]) && (i%sizeX == sizeX-1 || obstacles[i + 1]) && obstacles[i]==0 && i != myPOSx + myPOSy*sizeX)
+				{
+					obstacles[i] = 1;
+					i=0;
+				}
+				//S
+				if ((i/sizeX == sizeY-1 || obstacles[i + sizeX]) && (i%sizeX == 0 || obstacles[i - 1]) && (i%sizeX == sizeX-1 || obstacles[i + 1]) && obstacles[i]==0 && i != myPOSx + myPOSy*sizeX)
+				{
+					obstacles[i] = 1;
+					i=0;
+				}
+				//W
+				if ((i/sizeX == 0 || obstacles[i - sizeX]) && (i/sizeX == sizeY-1 || obstacles[i + sizeX]) && (i%sizeX == 0 || obstacles[i - 1]) && obstacles[i]==0 && i != myPOSx + myPOSy*sizeX)
+				{
+					obstacles[i] = 1;
+					i=0;
+				}
+			}
+				obstacles[myPOSx + myPOSy * sizeX] = 0;// ma tete n'est pas un obstacle
+
+			// fin difficulté 0
+/**/
 			for (int jkl = 0; jkl < 5; ++jkl)
 			{
 				// wall traps - 5 blocs long
@@ -296,7 +344,7 @@ int main(int argc, char const *argv[])
 					}
 				}
 			}
-
+/**/
 			obstacles[myPOSx + myPOSy * sizeX] = 0;// ma tete n'est pas un obstacle
 
 /*
@@ -340,7 +388,7 @@ int main(int argc, char const *argv[])
 /**/
 
 
-/*
+/**/
 			//affiche obstacles
 			for (int i = 0; i < sizeY*sizeX; ++i)
 			{
@@ -429,6 +477,7 @@ int main(int argc, char const *argv[])
 
 			//si le jeu termine a cause de son move, j'ai gagne
 			messageFinal = "VICTOIRE";
+
 		}
 		myTurn = !myTurn;
 		ctr ++;
