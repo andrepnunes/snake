@@ -60,7 +60,7 @@ int main(int argc, char const *argv[])
 	int gameON = 1;
 	connectToServer("polydev.cia-polytech-sorbonne.fr", 8080, "ovni");
 
-	waitForSnakeGame("SUPER_PLAYER difficulty=2 timeout=1000 seed=364648 start=0", gameName, &sizeX, &sizeY, &nbWalls);
+	waitForSnakeGame("SUPER_PLAYER difficulty=2 timeout=1000 seed=51 start=0", gameName, &sizeX, &sizeY, &nbWalls);
 	int obstacles[sizeX*sizeY];
 	
 
@@ -98,7 +98,7 @@ int main(int argc, char const *argv[])
 		//printArena();
 		if (myTurn)
 		{
-			//int aaa = 1;
+			int aaa = 1;
 			printArena(); // so faz print na minha vez
 /*			
 			for (int i = 0; i < 4*nbWalls; i+=4)
@@ -106,7 +106,8 @@ int main(int argc, char const *argv[])
 				printf("(%d\t%d)\t-\t(%d\t%d)\n", walls[i], walls[i+1], walls[i+2], walls[i+3]);
 			}
 /**/
-//aaa:
+
+			NN:
 			for (int i = 0; i < 4; ++i)
 			{
 				directionsInterdites[i] = 0;
@@ -246,8 +247,8 @@ int main(int argc, char const *argv[])
 			obstacles[myPOSx + myPOSy * sizeX] = 0;// ma tete n'est pas un obstacle
 
 			//difficulté 0
-			//if (aaa)
-			//{
+			if (aaa)
+			{
 				if (hisPOSx)
 				{
 					obstacles[hisPOSx - 1 + hisPOSy * sizeX] = 1;
@@ -264,14 +265,12 @@ int main(int argc, char const *argv[])
 				{
 					obstacles[hisPOSx + (hisPOSy-1) * sizeX] = 1;
 				}
-			//}else{
-			/*
+			}else{
 				if (hisPOSx){obstacles[hisPOSx - 1 + hisPOSy * sizeX] = 0;}
 				if (hisPOSx != sizeX-1){obstacles[hisPOSx + 1 + hisPOSy * sizeX] = 0;}
 				if (hisPOSy != sizeY-1){obstacles[hisPOSx + (hisPOSy+1) * sizeX] = 0;}
 				if (hisPOSy){obstacles[hisPOSx + (hisPOSy-1) * sizeX] = 0;}
-				*/
-			//}
+			}
 			
 
 			//fermeture des pieges
@@ -450,16 +449,16 @@ int main(int argc, char const *argv[])
 					myMove %= 4;
 				}
 				
-				if (directionsInterdites[0] == 1 && directionsInterdites[1] == 1 && directionsInterdites[2] == 1 && directionsInterdites[3] == 1 /*&& aaa*/)
+				if (directionsInterdites[0] == 1 && directionsInterdites[1] == 1 && directionsInterdites[2] == 1 && directionsInterdites[3] == 1 && aaa)
+				{
+					//break;
+					aaa = 0;
+					goto NN;
+				}
+				if (directionsInterdites[0] == 1 && directionsInterdites[1] == 1 && directionsInterdites[2] == 1 && directionsInterdites[3] == 1 && aaa == 0)
 				{
 					break;
-					//aaa = 0;
-					//goto aaa;
 				}
-				//if (aaa == 0)
-				//{
-				//	break;
-				//}
 			}
 
 
