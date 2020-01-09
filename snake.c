@@ -58,9 +58,17 @@ int main(int argc, char const *argv[])
 
 	// boolean : vaut 0 si le jeu doit s'arreter
 	int gameON = 1;
-	connectToServer("polydev.cia-polytech-sorbonne.fr", 8080, "ovni");
+	
+	//connectToServer("polydev.cia-polytech-sorbonne.fr", 8080, "ovni");
+	
+ 	connectToServer("localhost", 1234, "ovni");
 
-	waitForSnakeGame("SUPER_PLAYER difficulty=2 timeout=1000 seed=51 start=0", gameName, &sizeX, &sizeY, &nbWalls);
+	waitForSnakeGame("SUPER_PLAYER difficulty=2 timeout=1000 seed=1 start=0", gameName, &sizeX, &sizeY, &nbWalls);
+	
+	// Tournoi
+	//waitForSnakeGame("TOURNAMENT nom_du_tournoi");
+	
+
 	int obstacles[sizeX*sizeY];
 	
 
