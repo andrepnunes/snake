@@ -2,7 +2,7 @@ CC = gcc
 
 
 all: out
-	./out.out
+	#./out.out
 
 out: clientAPI snakeAPI snakec
 	gcc clientAPI.o snakeAPI.o snake.o -o out.out

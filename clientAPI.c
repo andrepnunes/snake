@@ -36,7 +36,7 @@ Copyright 2016-2017 T. Hilaire, J. Brajard
 #define h_addr h_addr_list[0] /* for backward compatibility */
 
 
-#define HEAD_SIZE 4 /*number of bytes to code the size of the message (header)*/
+#define HEAD_SIZE 6 /*number of bytes to code the size of the message (header)*/
 #define MAX_LENGTH 20000 /* maximum size of the buffer expect for print_Game */
 
 /* global variables about the connection
@@ -122,7 +122,7 @@ int read_inbuf(const char *fct, char *buf, size_t nbuf){
 	bzero(buf, nbuf);
 	do
 	{
-		r = read(sockfd, buf + read_length, mini);
+		r = read(sockfd, buf + read_length, mini-read_length);
 		if (r < 0)
 			dispError(fct, "Cannot read message (called by : %s)");
 		read_length += r;
@@ -265,7 +265,7 @@ void waitForGame( const char* fct, char* training, char* gameName, char* data)
 	 if we have disconnected or not
 	 (that's the only way for the server to detect disconnection, ie sending something and check if the socket is still open)*/
 	do{
-        bzero(buffer,1000);
+        bzero(buffer,MAX_LENGTH);
         r = read_inbuf(fct,buffer,MAX_LENGTH);
         if (r>0)
             dispError( fct, "Too long answer from 'WAIT_GAME' command (sending:%s)");
@@ -275,7 +275,7 @@ void waitForGame( const char* fct, char* training, char* gameName, char* data)
 	strcpy( gameName, buffer);
 
 	/* read Labyrinth size */
-	bzero(buffer,1000);
+	bzero(buffer,MAX_LENGTH);
 	r = read_inbuf(fct,buffer,MAX_LENGTH);
 	if (r>0)
 	  dispError( fct, "Answer from 'WAIT_GAME' too long");
@@ -310,7 +310,7 @@ int getGameData(const char* fct, char* data, size_t ndata)
 
 
 	/* read if we begin (0) or if the opponent begins (1) */
-	bzero(buffer,1000);
+	bzero(buffer,MAX_LENGTH);
 	r = read_inbuf(fct,buffer,MAX_LENGTH);
 	if (r > 0)
 		dispError(fct, "too long answer from 'GET_GAME_DATA' ");
@@ -344,7 +344,7 @@ t_return_code getCGSMove( const char* fct, char* move ,size_t nmove)
 	dispDebug(__FUNCTION__,1, "Receive that move:%s", move);
 
 	/* read the return code*/
-	//bzero(buffer,1000);
+	bzero(buffer,MAX_LENGTH);
 	r = read_inbuf(fct,buffer, MAX_LENGTH);
 	if (r>0)
 		dispError( fct, "Too long answer from 'GET_MOVE' command");
@@ -374,7 +374,7 @@ t_return_code sendCGSMove( const char* fct, char* move)
 
 
 	/* read return code */
-	//bzero(buffer,1000);
+	bzero(buffer,MAX_LENGTH);
 	int r = read_inbuf(fct,buffer,MAX_LENGTH);
 	if (r>0)
 		dispError( fct, "Too long answer from 'PLAY_MOVE' command");
@@ -385,7 +385,7 @@ t_return_code sendCGSMove( const char* fct, char* move)
 	sscanf( buffer, "%d", &result);
 
 	/* read the associated message */
-	//bzero(buffer,1000);
+	bzero(buffer,MAX_LENGTH);
 	r = read_inbuf(fct,buffer,MAX_LENGTH);
 	if (r>0)
 		dispError( fct, "Too long answer from 'PLAY_MOVE' command ");
@@ -416,7 +416,6 @@ void printGame( const char* fct)
 	sendString( fct, "DISP_GAME");
 
 	/* get string to print */
-	//char buffer[1000];
 	int r ;
 	do {
 	  r = read_inbuf(fct,buffer,MAX_LENGTH);

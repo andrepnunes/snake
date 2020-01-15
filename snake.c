@@ -3,8 +3,10 @@
 #include "ret_type.h"
 #include <stdlib.h>
 #include <stdio.h>
-int main(int argc, char const *argv[])
+
+int main(int argc, char* argv[])
 {
+	int port = strtol(argv[2], NULL, 10);
 	while (1){
 
 	//variables wait for snake game
@@ -59,9 +61,12 @@ int main(int argc, char const *argv[])
 
 	// boolean : vaut 0 si le jeu doit s'arreter
 	int gameON = 1;
-	connectToServer("polydev.cia-polytech-sorbonne.fr", 8080, "ovni");
-		waitForSnakeGame("SUPER_PLAYER difficulty=2 timeout=1000 seed=1 start=0", gameName, &sizeX, &sizeY, &nbWalls);
-		int obstacles[sizeX*sizeY];
+
+
+	connectToServer(argv[1], port, "maingalio");
+	waitForSnakeGame(argv[3], gameName, &sizeX, &sizeY, &nbWalls);
+
+	int obstacles[sizeX*sizeY];
 		
 
 	//	myTurn != myTurn;	//IF START = 1
